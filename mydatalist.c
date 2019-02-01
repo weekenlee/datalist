@@ -135,3 +135,29 @@ parse_atom(struct lex_state *LS) {
     }
     LS->n.type = TOKEN_ATOM;
 }
+
+static int 
+parse_string(struct lex_state *LS) {
+    const char *ptr = LS->source + LS->position;
+    const char *endptr = LS->source + LS->sz;
+    char open_string = *ptr++;
+    LS->n.type = TOKEN_STRING;
+    LS->n.from = LS->position + 1;
+    while (ptr < endptr) {
+        char c = *ptr;
+        if(c == open_string) {
+            LS->n.to = ptr - LS->source;
+            LS->position = ptr - LS->source + 1;
+            return 1;
+        }
+        if (c == '\r' || c == '\n') {
+            return 0;
+        }
+        if (c == '\\') {
+            LS->n.type = TOKEN_ESCAPESTRING;
+            ++ptr;
+        }
+        ++ptr;
+    }
+    return 0;
+}
