@@ -102,3 +102,36 @@ is_hexnumber(struct lex_state *LS) {
     }while (++ptr < endptr);
 }
 
+staic void
+parse_atom(struct lex_state *LS) {
+    static const char * separator = " \t\r\n,{}[]:=\"'";
+    const char *ptr = LS->source + LS->position;
+    const char *endptr = LS->source + LS->sz;
+    char head = *ptr;
+    LS->n.from = LS->position;
+    while(ptr < endptr) {
+        if(strchr(separator, *ptr)) {
+            break;
+        }
+        ++ptr;
+    }
+    LS->n.to = ptr - LS->source;
+    LS->position = LS->n.to;
+    swich(head) {
+        case '&':
+            if (is_hexnumber(LS)) {
+                LS->n.type = TOKEN_TAG;
+                return;
+            }
+            break;
+        case '*':
+            if (is_hexnumber(LS)) {
+                LS->n.type = TOKEN_REF;
+                return;
+            }
+            break;
+        default:
+            break;
+    }
+    LS->n.type = TOKEN_ATOM;
+}
